@@ -1,78 +1,75 @@
--- === MINI ATLAS BSS - MAIN ===
-print("🚀 Запуск Mini Atlas BSS by sashadonh...")
+-- === MINI ATLAS BSS v2 by sashadonh ===
+print("🚀 Запуск MiniAtlas v2...")
 
 local player = game.Players.LocalPlayer
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
--- === ВАЖНО: Загружаем модули по порядку ===
-loadstring(game:HttpGet("https://raw.githubusercontent.com/sashadonh/miniatlas/main/src/settings.lua"))()
-wait(0.1) -- небольшая задержка
+-- Загрузка модулей
+loadstring(game:HttpGet("https://raw.githubusercontent.com/sashadonh/miniatlas/main/src/settings.lua", true))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/sashadonh/miniatlas/main/src/utils.lua", true))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/sashadonh/miniatlas/main/src/ui.lua", true))()
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/sashadonh/miniatlas/main/src/utils.lua"))()
-wait(0.1)
-
-loadstring(game:HttpGet("https://raw.githubusercontent.com/sashadonh/miniatlas/main/src/ui.lua"))()
-wait(0.3)
-
-print("✅ Все модули загружены")
-
--- Основной цикл
+-- Улучшенный фарм
 spawn(function()
     while true do
-        pcall(function()  -- Защита от ошибок
-            if Settings.AutoFarm then
-                local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                if root then
-                    -- Фарм цветов
-                    for _, zone in pairs(Workspace:FindFirstChild("FlowerZones") and Workspace.FlowerZones:GetChildren() or {}) do
-                        if zone.Name == Settings.SelectedField then
-                            for _, flower in pairs(zone:GetChildren()) do
-                                if flower:FindFirstChild("Flower") and (flower.Position - root.Position).Magnitude < Settings.FarmRadius then
-                                    TweenTo(flower.Position)
-                                    wait(Settings.CollectDelay)
-                                    break
-                                end
-                            end
+        pcall(function()
+            if not Settings.AutoFarm then 
+                wait(1) 
+                return 
+            end
+
+            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+
+            -- Фарм поля
+            local zone = Workspace:FindFirstChild("FlowerZones") and Workspace.FlowerZones:FindFirstChild(Settings.SelectedField)
+            if zone then
+                for _, flower in pairs(zone:GetChildren()) do
+                    if flower:FindFirstChild("Flower") then
+                        local dist = (flower.Position - root.Position).Magnitude
+                        if dist < Settings.FarmRadius then
+                            TweenTo(flower.Position)
+                            wait(Settings.CollectDelay)
+                            break
                         end
-                    end
-
-                    -- Автосбор токенов
-                    if Settings.AutoCollect then
-                        local token = GetNearestToken()
-                        if token then
-                            TweenTo(token.Position)
-                            wait(0.15)
-                        end
-                    end
-
-                    -- Автоспринклер
-                    if Settings.AutoSprinkler then
-                        local tool = player.Backpack:FindFirstChild("Sprinkler") or player.Character:FindFirstChild("Sprinkler")
-                        if tool then tool:Activate() end
-                    end
-
-                    -- Автодиг
-                    if Settings.AutoDig then
-                        pcall(function()
-                            game:GetService("VirtualInputManager"):SendKeyEvent(true, "E", false, game)
-                            wait(0.08)
-                            game:GetService("VirtualInputManager"):SendKeyEvent(false, "E", false, game)
-                        end)
                     end
                 end
             end
 
-            -- Автоквесты
+            -- Автосбор токенов
+            if Settings.AutoCollect then
+                local token = GetNearestToken()
+                if token then
+                    TweenTo(token.Position)
+                    wait(0.1)
+                end
+            end
+
+            -- Автоспринклер
+            if Settings.AutoSprinkler then
+                local sprinkler = player.Backpack:FindFirstChild("Sprinkler") or player.Character:FindFirstChild("Sprinkler")
+                if sprinkler then sprinkler:Activate() end
+            end
+
+            -- Автодиг (E)
+            if Settings.AutoDig then
+                VirtualInputManager:SendKeyEvent(true, "E", false, game)
+                task.wait(0.1)
+                VirtualInputManager:SendKeyEvent(false, "E", false, game)
+            end
+
+            -- Автоквест
             if Settings.AutoQuest then
                 pcall(function()
                     ReplicatedStorage.Events.ClaimQuest:FireServer()
                 end)
             end
         end)
-
-        wait(0.5)
+        task.wait(0.4)
     end
 end)
 
-print("✅ Mini Atlas BSS полностью загружен! Удачного фарма 🐝")
+print("✅ MiniAtlas v2 успешно загружен!")
