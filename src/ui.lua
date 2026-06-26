@@ -1,121 +1,68 @@
 local player = game.Players.LocalPlayer
 
--- Удаляем старое GUI
-for _, v in pairs(player.PlayerGui:GetChildren()) do
-    if v.Name:find("MiniAtlas") or v.Name:find("Atlas") then v:Destroy() end
-end
-
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "MiniAtlas_AtlasStyle"
+ScreenGui.Name = "MiniAtlas_Atlas"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 380, 0, 520)
-Main.Position = UDim2.new(0.65, 0, 0.1, 0)
-Main.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+Main.Size = UDim2.new(0, 360, 0, 580)
+Main.Position = UDim2.new(0.68, 0, 0.08, 0)
+Main.BackgroundColor3 = Color3.fromRGB(12, 12, 22)
 Main.BorderSizePixel = 0
 Main.Parent = ScreenGui
 
--- Top Bar (как в Atlas)
+-- Top Bar как в Atlas
 local TopBar = Instance.new("Frame")
-TopBar.Size = UDim2.new(1, 0, 0, 50)
-TopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 45)
+TopBar.Size = UDim2.new(1, 0, 0, 45)
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
 TopBar.Parent = Main
 
 local Title = Instance.new("TextLabel")
-Title.Text = "Mini Atlas"
-Title.Size = UDim2.new(0.7, 0, 1, 0)
+Title.Text = " MINI ATLAS"
+Title.Size = UDim2.new(1, 0, 1, 0)
 Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(100, 200, 255)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 22
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Position = UDim2.new(0.05, 0, 0, 0)
+Title.TextColor3 = Color3.fromRGB(80, 180, 255)
+Title.Font = Enum.Font.GothamBlack
+Title.TextSize = 20
 Title.Parent = TopBar
 
--- Tabs
-local TabFrame = Instance.new("Frame")
-TabFrame.Size = UDim2.new(1, 0, 0, 40)
-TabFrame.Position = UDim2.new(0, 0, 0, 50)
-TabFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
-TabFrame.Parent = Main
+local y = 55
 
-local tabs = {"Home", "Farming", "Quests", "Misc"}
-local currentTab = "Home"
-
-local function SwitchTab(tab)
-    currentTab = tab
-    -- Здесь можно делать разные страницы, но для простоты показываем всё
-end
-
-for i, tabName in ipairs(tabs) do
-    local tabBtn = Instance.new("TextButton")
-    tabBtn.Size = UDim2.new(1/#tabs, 0, 1, 0)
-    tabBtn.Position = UDim2.new((i-1)/#tabs, 0, 0, 0)
-    tabBtn.BackgroundTransparency = 1
-    tabBtn.Text = tabName
-    tabBtn.TextColor3 = Color3.fromRGB(180, 180, 255)
-    tabBtn.Font = Enum.Font.GothamSemibold
-    tabBtn.Parent = TabFrame
-    tabBtn.MouseButton1Click:Connect(function() SwitchTab(tabName) end)
-end
-
--- Content
-local y = 110
-local function CreateToggle(text, key)
+local function CreateToggle(name, key)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 55)
-    btn.Position = UDim2.new(0.05, 0, 0, y)
-    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
-    btn.Text = "   " .. text .. ": " .. (Settings[key] and "✅ ON" or "❌ OFF")
+    btn.Size = UDim2.new(0.92, 0, 0, 48)
+    btn.Position = UDim2.new(0.04, 0, 0, y)
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 45)
+    btn.Text = "  " .. name
     btn.TextColor3 = Color3.new(1,1,1)
     btn.TextXAlignment = Enum.TextXAlignment.Left
     btn.Font = Enum.Font.GothamSemibold
-    btn.TextSize = 17
+    btn.TextSize = 16
     btn.Parent = Main
+
+    local status = Instance.new("TextLabel")
+    status.Size = UDim2.new(0.3, 0, 1, 0)
+    status.Position = UDim2.new(0.65, 0, 0, 0)
+    status.BackgroundTransparency = 1
+    status.Text = Settings[key] and "ON" or "OFF"
+    status.TextColor3 = Settings[key] and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 80, 80)
+    status.Font = Enum.Font.GothamBold
+    status.Parent = btn
 
     btn.MouseButton1Click:Connect(function()
         Settings[key] = not Settings[key]
-        btn.Text = "   " .. text .. ": " .. (Settings[key] and "✅ ON" or "❌ OFF")
-        btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(0, 120, 80) or Color3.fromRGB(30, 30, 50)
+        status.Text = Settings[key] and "ON" or "OFF"
+        status.TextColor3 = Settings[key] and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 80, 80)
+        btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(30, 50, 40) or Color3.fromRGB(25, 25, 45)
     end)
-    y = y + 65
+    y = y + 55
 end
 
 CreateToggle("Auto Farm", "AutoFarm")
-CreateToggle("Auto Collect Tokens", "AutoCollect")
+CreateToggle("Auto Collect", "AutoCollect")
 CreateToggle("Auto Sprinkler", "AutoSprinkler")
 CreateToggle("Auto Dig (E)", "AutoDig")
 CreateToggle("Auto Quest", "AutoQuest")
 
--- Field Selector
-local FieldLabel = Instance.new("TextLabel")
-FieldLabel.Text = "   Поле: " .. Settings.SelectedField
-FieldLabel.Size = UDim2.new(0.9, 0, 0, 50)
-FieldLabel.Position = UDim2.new(0.05, 0, 0, y + 10)
-FieldLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
-FieldLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-FieldLabel.TextXAlignment = Enum.TextXAlignment.Left
-FieldLabel.Font = Enum.Font.Gotham
-FieldLabel.Parent = Main
-
-local ChangeField = Instance.new("TextButton")
-ChangeField.Text = "Сменить поле"
-ChangeField.Size = UDim2.new(0.9, 0, 0, 50)
-ChangeField.Position = UDim2.new(0.05, 0, 0, y + 70)
-ChangeField.BackgroundColor3 = Color3.fromRGB(50, 50, 90)
-ChangeField.TextColor3 = Color3.new(1,1,1)
-ChangeField.Parent = Main
-
-ChangeField.MouseButton1Click:Connect(function()
-    local idx = 1
-    for i, f in ipairs(Fields) do
-        if f == Settings.SelectedField then idx = i end
-    end
-    idx = (idx % #Fields) + 1
-    Settings.SelectedField = Fields[idx]
-    FieldLabel.Text = "   Поле: " .. Settings.SelectedField
-end)
-
-print("🎨 Atlas-style GUI загружен")
+print("🎨 Atlas-style GUI v2.5 загружен")
