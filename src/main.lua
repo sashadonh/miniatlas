@@ -1,25 +1,81 @@
--- === MINI ATLAS BSS v2.5 (Anti-Cache + Atlas Style) ===
-print("🚀 Запуск MiniAtlas v2.5...")
+-- === MINI ATLAS + RAYFIELD ===
+print("🚀 Загрузка Rayfield...")
 
--- Мощная очистка старого GUI
-local player = game.Players.LocalPlayer
-for _, gui in pairs(player:WaitForChild("PlayerGui"):GetChildren()) do
-    if gui.Name:find("MiniAtlas") or gui.Name:find("Atlas") then
-        gui:Destroy()
-    end
-end
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local Workspace = game:GetService("Workspace")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
-local VirtualInput = game:GetService("VirtualInputManager")
+local Window = Rayfield:CreateWindow({
+    Name = "Mini Atlas BSS",
+    LoadingTitle = "Mini Atlas by sashadonh",
+    LoadingSubtitle = "Bee Swarm Simulator",
+    ConfigurationSaving = {
+        Enabled = false,
+    },
+})
 
--- Загрузка с анти-кэшем
-local repo = "https://raw.githubusercontent.com/sashadonh/miniatlas/main/src/"
-local nc = "?nocache=" .. os.time()
+-- Главная вкладка
+local MainTab = Window:CreateTab("Main", 4483362458)
 
-loadstring(game:HttpGet(repo .. "settings.lua" .. nc, true))()
-loadstring(game:HttpGet(repo .. "utils.lua" .. nc, true))()
-loadstring(game:HttpGet(repo .. "ui.lua" .. nc, true))()
+-- Настройки (будут использоваться в скрипте)
+Settings = Settings or {
+    AutoFarm = true,
+    AutoCollect = true,
+    AutoSprinkler = true,
+    AutoDig = true,
+    AutoQuest = true,
+    SelectedField = "Sunflower Field",
+}
 
-print("✅ MiniAtlas v2.5 загружен!")
+local Fields = {"Sunflower Field", "Mushroom Field", "Dandelion Field", "Clover Field", "Blue Flower Field", "Bamboo Field", "Strawberry Field", "Pineapple Patch", "Rose Field", "Spider Field", "Cactus Field", "Pumpkin Patch", "Coconut Field", "Pepper Patch", "Mountain Top Field", "Stump Field"}
+
+-- Тогглы
+MainTab:CreateToggle({
+    Name = "Auto Farm",
+    CurrentValue = Settings.AutoFarm,
+    Callback = function(Value)
+        Settings.AutoFarm = Value
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Collect Tokens",
+    CurrentValue = Settings.AutoCollect,
+    Callback = function(Value)
+        Settings.AutoCollect = Value
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Sprinkler",
+    CurrentValue = Settings.AutoSprinkler,
+    Callback = function(Value)
+        Settings.AutoSprinkler = Value
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Dig (E)",
+    CurrentValue = Settings.AutoDig,
+    Callback = function(Value)
+        Settings.AutoDig = Value
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Quest",
+    CurrentValue = Settings.AutoQuest,
+    Callback = function(Value)
+        Settings.AutoQuest = Value
+    end,
+})
+
+-- Выбор поля
+MainTab:CreateDropdown({
+    Name = "Selected Field",
+    Options = Fields,
+    CurrentOption = {Settings.SelectedField},
+    Callback = function(CurrentOption)
+        Settings.SelectedField = CurrentOption[1]
+    end,
+})
+
+print("✅ Rayfield GUI загружен!")
