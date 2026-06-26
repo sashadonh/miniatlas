@@ -1,5 +1,5 @@
 -- Mini Atlas Full Clone Loader by sashadonh
-print("🔄 Загрузка Mini Atlas Full Clone...")
+print("🔄 Загрузка Mini Atlas Full...")
 
 local repo = "https://raw.githubusercontent.com/sashadonh/miniatlas/main/"
 local nc = "?nocache=" .. os.time()
