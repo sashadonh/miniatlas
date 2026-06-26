@@ -1,74 +1,81 @@
 local player = game.Players.LocalPlayer
-
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "MiniAtlasGUI"
+ScreenGui.Name = "MiniAtlasV2"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 290, 0, 460)
-Frame.Position = UDim2.new(0.72, 0, 0.15, 0)
-Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-Frame.BorderSizePixel = 0
-Frame.Parent = ScreenGui
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 320, 0, 520)
+Main.Position = UDim2.new(0.7, 0, 0.1, 0)
+Main.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
+Main.BorderSizePixel = 0
+Main.Parent = ScreenGui
 
+-- Title
 local Title = Instance.new("TextLabel")
-Title.Text = "Mini Atlas BSS"
-Title.Size = UDim2.new(1, 0, 0, 45)
-Title.BackgroundColor3 = Color3.fromRGB(40, 40, 70)
-Title.TextColor3 = Color3.new(1,1,1)
+Title.Text = "Mini Atlas BSS v2"
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 55)
+Title.TextColor3 = Color3.new(1, 1, 1)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 19
-Title.Parent = Frame
+Title.TextSize = 20
+Title.Parent = Main
 
-local y = 55
-local function AddToggle(name, key)
+local y = 60
+
+local function CreateToggle(text, setting)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 42)
+    btn.Size = UDim2.new(0.9, 0, 0, 50)
     btn.Position = UDim2.new(0.05, 0, 0, y)
-    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 75)
-    btn.Text = name .. ": " .. (Settings[key] and "ON" or "OFF")
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 65)
+    btn.Text = text .. ": " .. (Settings[setting] and "ON" or "OFF")
     btn.TextColor3 = Color3.new(1,1,1)
-    btn.Font = Enum.Font.Gotham
-    btn.Parent = Frame
-    
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 16
+    btn.Parent = Main
+
     btn.MouseButton1Click:Connect(function()
-        Settings[key] = not Settings[key]
-        btn.Text = name .. ": " .. (Settings[key] and "ON" or "OFF")
+        Settings[setting] = not Settings[setting]
+        btn.Text = text .. ": " .. (Settings[setting] and "ON" or "OFF")
+        btn.BackgroundColor3 = Settings[setting] and Color3.fromRGB(0, 170, 100) or Color3.fromRGB(40, 40, 65)
     end)
-    y = y + 50
+    y = y + 60
 end
 
-AddToggle("Auto Farm", "AutoFarm")
-AddToggle("Auto Quest", "AutoQuest")
-AddToggle("Auto Collect", "AutoCollect")
-AddToggle("Auto Sprinkler", "AutoSprinkler")
-AddToggle("Auto Dig", "AutoDig")
+CreateToggle("Auto Farm", "AutoFarm")
+CreateToggle("Auto Collect", "AutoCollect")
+CreateToggle("Auto Sprinkler", "AutoSprinkler")
+CreateToggle("Auto Dig (E)", "AutoDig")
+CreateToggle("Auto Quest", "AutoQuest")
 
--- Выбор поля
+-- Поле
 local FieldLabel = Instance.new("TextLabel")
 FieldLabel.Text = "Поле: " .. Settings.SelectedField
-FieldLabel.Size = UDim2.new(0.9, 0, 0, 35)
+FieldLabel.Size = UDim2.new(0.9, 0, 0, 40)
 FieldLabel.Position = UDim2.new(0.05, 0, 0, y + 10)
 FieldLabel.BackgroundTransparency = 1
-FieldLabel.TextColor3 = Color3.new(1, 0.9, 0.6)
-FieldLabel.Parent = Frame
+FieldLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+FieldLabel.Font = Enum.Font.Gotham
+FieldLabel.TextSize = 15
+FieldLabel.Parent = Main
 
-local FieldBtn = Instance.new("TextButton")
-FieldBtn.Text = "Сменить поле"
-FieldBtn.Size = UDim2.new(0.9, 0, 0, 45)
-FieldBtn.Position = UDim2.new(0.05, 0, 0, y + 55)
-FieldBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
-FieldBtn.Parent = Frame
+local ChangeField = Instance.new("TextButton")
+ChangeField.Text = "Сменить поле"
+ChangeField.Size = UDim2.new(0.9, 0, 0, 50)
+ChangeField.Position = UDim2.new(0.05, 0, 0, y + 60)
+ChangeField.BackgroundColor3 = Color3.fromRGB(70, 70, 110)
+ChangeField.TextColor3 = Color3.new(1,1,1)
+ChangeField.Font = Enum.Font.GothamBold
+ChangeField.Parent = Main
 
-FieldBtn.MouseButton1Click:Connect(function()
+ChangeField.MouseButton1Click:Connect(function()
     local idx = 1
     for i, f in ipairs(Fields) do
-        if f == Settings.SelectedField then idx = i break end
+        if f == Settings.SelectedField then idx = i end
     end
-    idx = idx % #Fields + 1
+    idx = (idx % #Fields) + 1
     Settings.SelectedField = Fields[idx]
     FieldLabel.Text = "Поле: " .. Settings.SelectedField
 end)
 
-print("🎨 GUI MiniAtlas загружен")
+print("🎨 Красивое GUI v2 загружено")
