@@ -1,14 +1,13 @@
--- Настройки MiniAtlas
 Settings = {
     AutoFarm = true,
-    AutoQuest = true,
     AutoCollect = true,
     AutoSprinkler = true,
     AutoDig = true,
+    AutoQuest = true,
     SelectedField = "Sunflower Field",
-    FarmRadius = 30,
-    TweenSpeed = 0.85,
-    CollectDelay = 0.35,
+    FarmRadius = 35,
+    TweenSpeed = 0.75,
+    CollectDelay = 0.25,
 }
 
 Fields = {
@@ -18,4 +17,4 @@ Fields = {
     "Coconut Field", "Pepper Patch", "Mountain Top Field", "Stump Field"
 }
 
-print("⚙️ Настройки MiniAtlas загружены")
+print("⚙️ Settings v2 загружены")
