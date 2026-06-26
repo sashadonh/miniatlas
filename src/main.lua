@@ -1,21 +1,24 @@
--- === MINI ATLAS + RAYFIELD ===
-print("🚀 Загрузка Rayfield...")
+-- === MINI ATLAS + RAYFIELD v2.6 ===
+print("🚀 Запуск Mini Atlas + Rayfield...")
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local success, Rayfield = pcall(function()
+    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+
+if not success then
+    warn("Не удалось загрузить Rayfield! Используй другой executor или попробуй позже.")
+    return
+end
 
 local Window = Rayfield:CreateWindow({
     Name = "Mini Atlas BSS",
     LoadingTitle = "Mini Atlas by sashadonh",
     LoadingSubtitle = "Bee Swarm Simulator",
-    ConfigurationSaving = {
-        Enabled = false,
-    },
+    ConfigurationSaving = { Enabled = false }
 })
 
--- Главная вкладка
-local MainTab = Window:CreateTab("Main", 4483362458)
+local MainTab = Window:CreateTab("Farming", 4483362458)
 
--- Настройки (будут использоваться в скрипте)
 Settings = Settings or {
     AutoFarm = true,
     AutoCollect = true,
@@ -23,59 +26,24 @@ Settings = Settings or {
     AutoDig = true,
     AutoQuest = true,
     SelectedField = "Sunflower Field",
+    FarmRadius = 40,
 }
 
 local Fields = {"Sunflower Field", "Mushroom Field", "Dandelion Field", "Clover Field", "Blue Flower Field", "Bamboo Field", "Strawberry Field", "Pineapple Patch", "Rose Field", "Spider Field", "Cactus Field", "Pumpkin Patch", "Coconut Field", "Pepper Patch", "Mountain Top Field", "Stump Field"}
 
--- Тогглы
-MainTab:CreateToggle({
-    Name = "Auto Farm",
-    CurrentValue = Settings.AutoFarm,
-    Callback = function(Value)
-        Settings.AutoFarm = Value
-    end,
-})
+MainTab:CreateToggle({Name = "Auto Farm", CurrentValue = true, Callback = function(v) Settings.AutoFarm = v end})
+MainTab:CreateToggle({Name = "Auto Collect", CurrentValue = true, Callback = function(v) Settings.AutoCollect = v end})
+MainTab:CreateToggle({Name = "Auto Sprinkler", CurrentValue = true, Callback = function(v) Settings.AutoSprinkler = v end})
+MainTab:CreateToggle({Name = "Auto Dig (E)", CurrentValue = true, Callback = function(v) Settings.AutoDig = v end})
+MainTab:CreateToggle({Name = "Auto Quest", CurrentValue = true, Callback = function(v) Settings.AutoQuest = v end})
 
-MainTab:CreateToggle({
-    Name = "Auto Collect Tokens",
-    CurrentValue = Settings.AutoCollect,
-    Callback = function(Value)
-        Settings.AutoCollect = Value
-    end,
-})
-
-MainTab:CreateToggle({
-    Name = "Auto Sprinkler",
-    CurrentValue = Settings.AutoSprinkler,
-    Callback = function(Value)
-        Settings.AutoSprinkler = Value
-    end,
-})
-
-MainTab:CreateToggle({
-    Name = "Auto Dig (E)",
-    CurrentValue = Settings.AutoDig,
-    Callback = function(Value)
-        Settings.AutoDig = Value
-    end,
-})
-
-MainTab:CreateToggle({
-    Name = "Auto Quest",
-    CurrentValue = Settings.AutoQuest,
-    Callback = function(Value)
-        Settings.AutoQuest = Value
-    end,
-})
-
--- Выбор поля
 MainTab:CreateDropdown({
-    Name = "Selected Field",
+    Name = "Выбор поля",
     Options = Fields,
-    CurrentOption = {Settings.SelectedField},
-    Callback = function(CurrentOption)
-        Settings.SelectedField = CurrentOption[1]
-    end,
+    CurrentOption = {"Sunflower Field"},
+    Callback = function(Option) 
+        Settings.SelectedField = Option[1] 
+    end
 })
 
-print("✅ Rayfield GUI загружен!")
+print("✅ Rayfield GUI создан!")
