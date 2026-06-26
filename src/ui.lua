@@ -1,62 +1,116 @@
 local player = game.Players.LocalPlayer
 
+-- Очистка старого GUI
+for _, v in pairs(player.PlayerGui:GetChildren()) do
+    if v.Name:find("MiniAtlas") or v.Name:find("Atlas") then
+        v:Destroy()
+    end
+end
+
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MiniAtlas_Atlas"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 360, 0, 580)
-Main.Position = UDim2.new(0.68, 0, 0.08, 0)
-Main.BackgroundColor3 = Color3.fromRGB(12, 12, 22)
+Main.Size = UDim2.new(0, 380, 0, 520)
+Main.Position = UDim2.new(0.67, 0, 0.1, 0)
+Main.BackgroundColor3 = Color3.fromRGB(13, 13, 23)
 Main.BorderSizePixel = 0
+Main.Visible = true
 Main.Parent = ScreenGui
 
--- Top Bar как в Atlas
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = Main
+
+-- Top Bar
 local TopBar = Instance.new("Frame")
-TopBar.Size = UDim2.new(1, 0, 0, 45)
-TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
+TopBar.Size = UDim2.new(1, 0, 0, 55)
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 38)
 TopBar.Parent = Main
 
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 12)
+TopCorner.Parent = TopBar
+
 local Title = Instance.new("TextLabel")
-Title.Text = " MINI ATLAS"
-Title.Size = UDim2.new(1, 0, 1, 0)
+Title.Text = "MINI ATLAS"
+Title.Size = UDim2.new(0.7, 0, 1, 0)
 Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(80, 180, 255)
+Title.TextColor3 = Color3.fromRGB(100, 180, 255)
 Title.Font = Enum.Font.GothamBlack
-Title.TextSize = 20
+Title.TextSize = 22
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Position = UDim2.new(0.05, 0, 0, 0)
 Title.Parent = TopBar
 
-local y = 55
+-- Кнопка закрытия / сворачивания
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Text = "✕"
+CloseBtn.Size = UDim2.new(0, 40, 0, 40)
+CloseBtn.Position = UDim2.new(1, -45, 0, 8)
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 24
+CloseBtn.Parent = TopBar
+
+-- Содержимое
+local Content = Instance.new("Frame")
+Content.Size = UDim2.new(1, 0, 1, -55)
+Content.Position = UDim2.new(0, 0, 0, 55)
+Content.BackgroundTransparency = 1
+Content.Parent = Main
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 6)
+UIListLayout.Parent = Content
 
 local function CreateToggle(name, key)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.92, 0, 0, 48)
-    btn.Position = UDim2.new(0.04, 0, 0, y)
-    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 45)
-    btn.Text = "  " .. name
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.TextXAlignment = Enum.TextXAlignment.Left
-    btn.Font = Enum.Font.GothamSemibold
-    btn.TextSize = 16
-    btn.Parent = Main
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Size = UDim2.new(1, -20, 0, 52)
+    ToggleFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 40)
+    ToggleFrame.Parent = Content
 
-    local status = Instance.new("TextLabel")
-    status.Size = UDim2.new(0.3, 0, 1, 0)
-    status.Position = UDim2.new(0.65, 0, 0, 0)
-    status.BackgroundTransparency = 1
-    status.Text = Settings[key] and "ON" or "OFF"
-    status.TextColor3 = Settings[key] and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 80, 80)
-    status.Font = Enum.Font.GothamBold
-    status.Parent = btn
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 10)
+    Corner.Parent = ToggleFrame
 
-    btn.MouseButton1Click:Connect(function()
-        Settings[key] = not Settings[key]
-        status.Text = Settings[key] and "ON" or "OFF"
-        status.TextColor3 = Settings[key] and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 80, 80)
-        btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(30, 50, 40) or Color3.fromRGB(25, 25, 45)
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = Color3.fromRGB(45, 45, 75)
+    Stroke.Thickness = 1
+    Stroke.Parent = ToggleFrame
+
+    local Label = Instance.new("TextLabel")
+    Label.Text = name
+    Label.Size = UDim2.new(0.65, 0, 1, 0)
+    Label.Position = UDim2.new(0.05, 0, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.TextColor3 = Color3.new(1,1,1)
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Font = Enum.Font.GothamSemibold
+    Label.TextSize = 17
+    Label.Parent = ToggleFrame
+
+    local Status = Instance.new("TextLabel")
+    Status.Text = Settings[key] and "ON" or "OFF"
+    Status.Size = UDim2.new(0.25, 0, 1, 0)
+    Status.Position = UDim2.new(0.7, 0, 0, 0)
+    Status.BackgroundTransparency = 1
+    Status.TextColor3 = Settings[key] and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 70, 70)
+    Status.Font = Enum.Font.GothamBold
+    Status.TextSize = 17
+    Status.Parent = ToggleFrame
+
+    ToggleFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Settings[key] = not Settings[key]
+            Status.Text = Settings[key] and "ON" or "OFF"
+            Status.TextColor3 = Settings[key] and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 70, 70)
+        end
     end)
-    y = y + 55
 end
 
 CreateToggle("Auto Farm", "AutoFarm")
@@ -65,4 +119,21 @@ CreateToggle("Auto Sprinkler", "AutoSprinkler")
 CreateToggle("Auto Dig (E)", "AutoDig")
 CreateToggle("Auto Quest", "AutoQuest")
 
-print("🎨 Atlas-style GUI v2.5 загружен")
+-- Логика открытия/закрытия
+local isOpen = true
+
+CloseBtn.MouseButton1Click:Connect(function()
+    isOpen = not isOpen
+    Main.Visible = isOpen
+end)
+
+-- Горячая клавиша (Right Shift) для открытия/закрытия
+game:GetService("UserInputService").InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        isOpen = not isOpen
+        Main.Visible = isOpen
+    end
+end)
+
+print("🎨 Atlas-style GUI с открытием/закрытием загружен | RightShift - открыть/закрыть")
