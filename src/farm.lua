@@ -1,50 +1,28 @@
-spawn(function()
-    while true do
-        pcall(function()
-            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-            if not root then task.wait(1) return end
+-- === MINI ATLAS FULL v3.4 - FIXED AUTO FARM ===
+print("🚀 Запуск Mini Atlas v3.4 (Fixed Auto Farm)...")
 
-            if _G.Settings.AutoFarm then
-                local zone = Workspace:FindFirstChild("FlowerZones") and Workspace.FlowerZones:FindFirstChild(_G.Settings.SelectedField)
-                if zone then
-                    for _, flower in pairs(zone:GetChildren()) do
-                        if flower:FindFirstChild("Flower") then
-                            local dist = (flower.Position - root.Position).Magnitude
-                            if dist < _G.Settings.FarmRadius and dist > 8 then
-                                TweenTo(flower.Position)
-                                task.wait(0.15)
-                                break
-                            end
-                        end
-                    end
-                end
-            end
+local player = game.Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
-            if _G.Settings.AutoCollect then
-                local token = GetNearestToken()
-                if token then
-                    TweenTo(token.Position)
-                    task.wait(0.1)
-                end
-            end
+_G.Settings = {
+    AutoFarm = false,
+    AutoCollect = false,
+    AutoSprinkler = false,
+    AutoDig = false,
+    AutoQuest = false,
+    SelectedField = "Sunflower Field",
+    TweenSpeed = 0.55,      -- быстрее и плавнее
+    FarmRadius = 60,
+}
 
-            if _G.Settings.AutoSprinkler then
-                local tool = player.Backpack:FindFirstChild("Sprinkler") or player.Character:FindFirstChild("Sprinkler")
-                if tool then tool:Activate() end
-            end
+local repo = "https://raw.githubusercontent.com/sashadonh/miniatlas/main/src/"
+local nc = "?nocache=" .. os.time()
 
-            if _G.Settings.AutoDig then
-                VirtualInputManager:SendKeyEvent(true, "E", false, game)
-                task.wait(0.08)
-                VirtualInputManager:SendKeyEvent(false, "E", false, game)
-            end
+loadstring(game:HttpGet(repo .. "ui.lua" .. nc, true))()
+loadstring(game:HttpGet(repo .. "utils.lua" .. nc, true))()
+loadstring(game:HttpGet(repo .. "farm.lua" .. nc, true))()
 
-            if _G.Settings.AutoQuest then
-                pcall(function()
-                    ReplicatedStorage.Events.ClaimQuest:FireServer()
-                end)
-            end
-        end)
-        task.wait(0.25)
-    end
-end)
+print("✅ v3.4 Fixed | Все функции выключены")
