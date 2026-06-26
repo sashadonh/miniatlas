@@ -1,7 +1,7 @@
--- MiniAtlas Loader v2.5 (Anti-Cache) by sashadonh
-print("🔄 Загрузка MiniAtlas v2.5 (Anti-Cache)...")
+-- MiniAtlas Loader with Rayfield by sashadonh
+print("🔄 Загрузка MiniAtlas + Rayfield...")
 
 local repo = "https://raw.githubusercontent.com/sashadonh/miniatlas/main/"
-local timestamp = "?nocache=" .. os.time()
+local nc = "?nocache=" .. os.time()
 
-loadstring(game:HttpGet(repo .. "src/main.lua" .. timestamp, true))()
+loadstring(game:HttpGet(repo .. "src/main.lua" .. nc, true))()
