@@ -1,25 +1,38 @@
-# Nectar V4
+# Nectar V5 🐝
 
-Atlas-inspired UI with independent Bee Swarm Simulator helpers and an opt-in Original Atlas launcher.
+Авторський модульний Lua-скрипт для Roblox Bee Swarm Simulator. Темний GUI з фіолетовими акцентами. **Жодних чужих завантажувачів чи Atlas-коду.**
 
-## Solara loader
+## Запуск у Solara
 
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/sashadonh/miniatlas/main/loader.lua"))()
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/sashadonh/miniatlas/main/loader.lua"))()
+```
 
-## Nectar features
+## Структура
 
-- Modern 10-tab GUI with search, scrolling and toggles; RightShift shows/hides
-- Farming: field choice, walking farm, tool dig, sprinkler helper
-- Collection: token movement and attempted honey conversion when stats and hive are identifiable
-- Combat: approach spawned mobs
-- Quests: NPC and proximity prompt assistance (not automatic quest completion)
-- Config: client WalkSpeed 16-200, persistent preferences when file APIs work
-- Planters/Toys/RBC/advanced Farming/Quests: opt-in original Atlas launcher (separate UI)
+- `loader.lua` — короткий вхідний файл
+- `NectarV5.lua` — налаштування й запуск модулів
+- `src/nectar_engine.lua` — власна логіка автоматизації
+- `src/nectar_ui.lua` — власний сучасний GUI
+- `NectarV3.lua` — попередня версія для відкату
 
-## Important limitations
+## Реалізована логіка (потрібна перевірка в самій грі)
 
-The Original Atlas upstream script is obfuscated. It is loaded only when the user explicitly selects Launch Original Atlas. Its features run in a separate interface and are not controlled by Nectar toggles.
+- **Farming:** вибір поля, Zigzag/Spiral/Circle/Random, MoveTo/Pathfinding, автоактивація колектора (ClickEvent/Tool/Mouse), спринклер за наявності доступного Tool
+- **Collection:** найближчі токени, пріоритет над маршрутом, спроба конвертації пилку біля власного вулика, контроль заповнення через CoreStats або ProgressLabel
+- **Combat:** наближення до доступних моделей мобів; шкода від бджіл за правилами гри
+- **Quests:** перехід до вибраного NPC й спроба взаємодії з ним, без автоматичного аналізу цілей
+- **Special targets:** пріоритет видимих sprouts, puffshrooms, bubbles, coconuts, precise, fires, leaves, clouds (експериментальні евристики за назвами об'єктів)
+- **Toys:** перехід до вибраної іграшки й спроба її локальної взаємодії через prompt/click detector
+- **Settings:** WalkSpeed 16–200, налаштування таймінгів, збереження за наявності `writefile`
+- **Debug:** діагностика доступності поля, інструмента, пилку, місткості та вулика
 
-Nectar helpers are best-effort and untested in live Bee Swarm Simulator. Game/server limits, executor support and game updates may prevent them from working. No anti-cheat bypass or ban immunity is provided.
+## Поки НЕ реалізовано
 
-NectarV3.lua is retained for rollback.
+Повноцінне читання/планування квестів, висадку й збір Planters через ігровий API, автоматичний RBC, усі босові тактики, memory match, webhook. Відповідних «фальшивих перемикачів» немає.
+
+## Сумісність
+
+Автофарм і конвертація — робочі алгоритми, але не перевірені наживо у поточному Bee Swarm Simulator / Solara. Деякі функції виконавця можуть бути недоступні. Якщо пилок не збирається: у **Farming** перемкни Dig Method (Auto / ClickEvent / Tool / Mouse), далі у **Debug** натисни «Run BSS compatibility check». Кнопка RightShift приховує/показує GUI.
+
+Скрипт не обходить античит і не гарантує відсутності блокувань.
