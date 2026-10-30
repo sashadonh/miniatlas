@@ -146,6 +146,41 @@ animeImage.Visible=true
 animeImage.ZIndex=2
 animeImage.Parent=main
 local artStatus="Loading artwork..."
+local customIdActive=false
+local updateArtStatus
+local function setRobloxImageId(raw)
+ local id=tostring(raw or ""):match("(%d+)")
+ if not id or #id < 5 or #id>20 then
+  artStatus="Invalid asset ID"
+  if updateArtStatus then updateArtStatus() end
+  return false
+ end
+ customIdActive=true
+ animeImage.Image="rbxassetid://"..id
+ artStatus="Asset assigned, checking render"
+ if type(writefile)=="function" then
+  pcall(function() writefile("nectar_character_asset_id.txt",id) end)
+ end
+ if updateArtStatus then updateArtStatus() end
+ task.spawn(function()
+  local untilTime=os.clock()+10
+  while alive and animeImage.Parent and not animeImage.IsLoaded and os.clock()<untilTime do
+   task.wait(.25)
+  end
+  if alive and customIdActive then
+   artStatus=animeImage.IsLoaded and "Character loaded" or "Roblox image unavailable"
+   if updateArtStatus then updateArtStatus() end
+  end
+ end)
+ return true
+end
+if type(isfile)=="function" and type(readfile)=="function" then
+ pcall(function()
+  if isfile("nectar_character_asset_id.txt") then
+   setRobloxImageId(readfile("nectar_character_asset_id.txt"))
+  end
+ end)
+end
 task.spawn(function()
  local ok,result=pcall(function()
   local assetFn=(type(getcustomasset)=="function" and getcustomasset)
@@ -159,7 +194,7 @@ task.spawn(function()
   writefile(path,imageData)
   return assetFn(path)
  end)
- if ok and alive and animeImage.Parent then
+ if ok and alive and animeImage.Parent and not customIdActive then
   animeImage.Image=result
   artStatus="Asset assigned, checking render"
   task.spawn(function()
@@ -167,13 +202,13 @@ task.spawn(function()
    while alive and animeImage.Parent and not animeImage.IsLoaded and os.clock()<deadline do
     task.wait(.2)
    end
-   if alive then
+   if alive and not customIdActive then
     artStatus=animeImage.IsLoaded and "Character loaded" or "Artwork needs local asset support"
    end
   end)
- else
+ elseif not customIdActive then
   artStatus="Artwork needs local asset support"
-  warn("[Nectar V6] "..tostring(result))
+  warn("[Nectar V8] "..tostring(result))
  end
 end)
 local purpleVeil=frame(main,UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(14,8,31),16)
@@ -223,8 +258,8 @@ header.ZIndex=5
 local emblem=frame(header,UDim2.fromOffset(39,39),UDim2.fromOffset(17,12),C.raised,11)
 local em=text(emblem,"◆",UDim2.fromScale(1,1),UDim2.new(),24,C.light,true)
 em.TextXAlignment=Enum.TextXAlignment.Center
-text(header,"NECTAR  /  GLASS V8.0",UDim2.fromOffset(250,27),UDim2.fromOffset(66,8),18,C.light,true)
-text(header,"CYBER VIOLET  •  V8.0",UDim2.fromOffset(280,15),
+text(header,"NECTAR  /  GLASS V8.1",UDim2.fromOffset(250,27),UDim2.fromOffset(66,8),18,C.light,true)
+text(header,"CYBER VIOLET  •  V8.1",UDim2.fromOffset(280,15),
  UDim2.fromOffset(67,34),10,C.muted,false,.12)
 local btnMin=button(header,"−",UDim2.fromOffset(31,29),
  UDim2.new(1,-78,0,15),C.card)
@@ -391,10 +426,34 @@ on(reset.MouseButton1Click,function()
  updateSpeed(16)
  drawState()
 end)
+local assetLabel=text(settingsPage,"ROBLOX IMAGE ASSET ID",
+ UDim2.fromOffset(330,20),UDim2.fromOffset(20,142),11,C.light,true,.1)
+local assetInput=Instance.new("TextBox")
+assetInput.Size=UDim2.fromOffset(245,34)
+assetInput.Position=UDim2.fromOffset(20,166)
+assetInput.PlaceholderText="Paste Roblox image ID..."
+assetInput.Text=""
+assetInput.ClearTextOnFocus=false
+assetInput.BackgroundColor3=C.raised
+assetInput.TextColor3=C.white
+assetInput.PlaceholderColor3=C.muted
+assetInput.TextSize=12
+assetInput.Font=Enum.Font.Gotham
+assetInput.BorderSizePixel=0
+assetInput.Parent=settingsPage
+radius(assetInput,8)
+local applyImage=button(settingsPage,"Apply",UDim2.fromOffset(102,34),
+ UDim2.fromOffset(278,166),C.violet)
+on(applyImage.MouseButton1Click,function()
+ setRobloxImageId(assetInput.Text)
+end)
+on(assetInput.FocusLost,function(enterPressed)
+ if enterPressed then setRobloxImageId(assetInput.Text) end
+end)
 local detail=text(settingsPage,
- "RightShift  •  Show / hide interface\n\nClient-side movement only.\nGame rules can override WalkSpeed.",
- UDim2.fromOffset(351,115),UDim2.fromOffset(22,153),
- 12,C.muted,false,.13)
+ "Upload the picture to Roblox Creator Hub, then paste its ID.\nRightShift: hide/show • Speed is client-side.",
+ UDim2.fromOffset(355,58),UDim2.fromOffset(22,209),
+ 11,C.muted,false,.1)
 detail.TextWrapped=true
 detail.TextYAlignment=Enum.TextYAlignment.Top
 
@@ -409,17 +468,17 @@ end
 on(navSpeed.MouseButton1Click,function() showPage("Speed") end)
 on(navSettings.MouseButton1Click,function() showPage("Settings") end)
 
-local footer=text(main,"NECTAR  •  LIQUID GLASS V8.0",
+local footer=text(main,"NECTAR  •  LIQUID GLASS V8.1",
  UDim2.fromOffset(290,16),UDim2.fromOffset(20,345),10,C.muted,false,.19)
 local status=text(main,"●  GLASS V8 ACTIVE",UDim2.fromOffset(200,16),
  UDim2.fromOffset(396,345),10,C.light,true,.15)
 status.TextXAlignment=Enum.TextXAlignment.Right
 status.ZIndex=8
-local function updateArtStatus()
+updateArtStatus=function()
  if artStatus=="Character loaded" then
   status.Text="●  IMAGE RENDERED"
   status.TextColor3=C.green
- elseif artStatus=="Artwork needs local asset support" then
+ elseif artStatus=="Artwork needs local asset support" or artStatus=="Roblox image unavailable" or artStatus=="Invalid asset ID" then
   status.Text="●  IMAGE NOT LOADED"
   status.TextColor3=Color3.fromRGB(247,176,111)
  else
@@ -490,4 +549,4 @@ updateSpeed(75)
 drawState()
 print("[Nectar] Liquid glass artwork loading; "..artStatus)
 showPage("Speed")
-print("Nectar Liquid Glass V8.0 loaded")
+print("Nectar Liquid Glass V8.1 loaded")
