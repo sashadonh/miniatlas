@@ -1,8 +1,6 @@
--- Nectar Cyber Violet Liquid Glass V6.2
--- Cache-busted: loads latest version every execution.
-local url="https://raw.githubusercontent.com/sashadonh/miniatlas/main/NectarSpeedV6.lua"
-local nonce=tostring(math.floor(os.clock()*1000000))
-local source=game:HttpGet(url.."?v="..nonce,true)
-local run,err=loadstring(source)
-assert(run,err)
-run()
+-- Nectar Liquid Glass V7 | unique file avoids stale V6 cache
+local address="https://raw.githubusercontent.com/sashadonh/miniatlas/main/NectarGlassV7.lua"
+local text=game:HttpGet(address.."?fresh="..tostring(os.clock()),true)
+local fn,err=loadstring(text)
+assert(fn,err)
+fn()
