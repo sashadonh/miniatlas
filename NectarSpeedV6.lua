@@ -105,7 +105,81 @@ local shadow=frame(gui,UDim2.fromOffset(618,375),
 shadow.BackgroundTransparency=.91
 local main=frame(shadow,UDim2.fromOffset(612,369),UDim2.fromOffset(3,3),C.bg,16)
 main.Active=true
-border(main,C.violet,1.2,.23)
+main.ClipsDescendants=true
+border(main,C.violet,1.2,.19)
+
+-- User-supplied artwork, stored in this repository as base64 JPEG.
+-- Custom local assets require executor support; there is no Roblox asset ID.
+local artURL="https://raw.githubusercontent.com/sashadonh/miniatlas/main/assets/nectar_character_base64.txt"
+local function decodeBase64(input)
+ local alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+ input=input:gsub("[^"..alphabet:gsub("%+","%%+").."/=]","")
+ local output={}
+ local bitBuffer,bitCount=0,0
+ for i=1,#input do
+  local char=input:sub(i,i)
+  if char=="=" then break end
+  local n=alphabet:find(char,1,true)
+  if n then
+   bitBuffer=bitBuffer*64+(n-1)
+   bitCount=bitCount+6
+   if bitCount>=8 then
+    bitCount=bitCount-8
+    local div=2^bitCount
+    local byte=math.floor(bitBuffer/div)
+    output[#output+1]=string.char(byte%256)
+    bitBuffer=bitBuffer%div
+   end
+  end
+ end
+ return table.concat(output)
+end
+local animeImage=Instance.new("ImageLabel")
+animeImage.Name="CharacterArtwork"
+animeImage.BackgroundTransparency=1
+animeImage.Size=UDim2.fromOffset(315,425)
+animeImage.Position=UDim2.new(1,-293,0,-17)
+animeImage.ImageTransparency=.35
+animeImage.ImageColor3=Color3.fromRGB(205,180,238)
+animeImage.ScaleType=Enum.ScaleType.Fit
+animeImage.ZIndex=2
+animeImage.Parent=main
+local artStatus="Loading artwork..."
+task.spawn(function()
+ local ok,result=pcall(function()
+  local assetFn=(type(getcustomasset)=="function" and getcustomasset)
+   or (type(getsynasset)=="function" and getsynasset)
+  assert(type(assetFn)=="function" and type(writefile)=="function",
+   "local custom assets unsupported")
+  local encoded=game:HttpGet(artURL,true)
+  local imageData=decodeBase64(encoded)
+  assert(#imageData>1000,"invalid image data")
+  local path="nectar_character_v6.jpg"
+  writefile(path,imageData)
+  return assetFn(path)
+ end)
+ if ok and alive and animeImage.Parent then
+  animeImage.Image=result
+  artStatus="Character loaded"
+ else
+  artStatus="Artwork needs local asset support"
+  warn("[Nectar V6] "..tostring(result))
+ end
+end)
+local purpleVeil=frame(main,UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(14,8,31),16)
+purpleVeil.BackgroundTransparency=.54
+purpleVeil.ZIndex=3
+local veilGradient=Instance.new("UIGradient")
+veilGradient.Transparency=NumberSequence.new({
+ NumberSequenceKeypoint.new(0,.2),
+ NumberSequenceKeypoint.new(.43,.43),
+ NumberSequenceKeypoint.new(1,.72)
+})
+veilGradient.Parent=purpleVeil
+local highlight=frame(main,UDim2.new(1,-35,0,1),UDim2.fromOffset(18,64),
+ Color3.fromRGB(186,117,255))
+highlight.BackgroundTransparency=.55
+highlight.ZIndex=4
 local grad=Instance.new("UIGradient")
 grad.Color=ColorSequence.new({
  ColorSequenceKeypoint.new(0,C.bg),
@@ -114,7 +188,8 @@ grad.Color=ColorSequence.new({
 grad.Rotation=38
 grad.Parent=main
 local header=frame(main,UDim2.new(1,0,0,62),UDim2.new(),C.bg)
-header.BackgroundTransparency=1;header.Active=true
+header.BackgroundTransparency=.74;header.Active=true
+header.ZIndex=5
 local emblem=frame(header,UDim2.fromOffset(39,39),UDim2.fromOffset(17,12),C.raised,11)
 local em=text(emblem,"◆",UDim2.fromScale(1,1),UDim2.new(),24,C.light,true)
 em.TextXAlignment=Enum.TextXAlignment.Center
@@ -123,19 +198,28 @@ text(header,"CYBER CONTROL SYSTEM",UDim2.fromOffset(280,15),
  UDim2.fromOffset(67,34),10,C.muted,false,.12)
 local btnMin=button(header,"−",UDim2.fromOffset(31,29),
  UDim2.new(1,-78,0,15),C.card)
+btnMin.ZIndex=8
 local btnClose=button(header,"×",UDim2.fromOffset(31,29),
  UDim2.new(1,-41,0,15),C.card)
+btnClose.ZIndex=8
 btnMin.TextSize=20;btnClose.TextSize=19
 frame(main,UDim2.new(1,-34,0,1),UDim2.fromOffset(17,61),C.line)
 
 local sidebar=frame(main,UDim2.fromOffset(171,267),
  UDim2.fromOffset(13,73),C.side,12)
+sidebar.BackgroundTransparency=.25
+sidebar.ZIndex=5
+border(sidebar,C.light,1,.77)
 text(sidebar,"WORKSPACE",UDim2.fromOffset(140,18),
  UDim2.fromOffset(13,14),10,C.muted,true,.2)
 local navSpeed=button(sidebar,"⚡   Speed",UDim2.fromOffset(149,43),
  UDim2.fromOffset(11,46),C.raised)
+navSpeed.BackgroundTransparency=.18
+navSpeed.ZIndex=7
 local navSettings=button(sidebar,"⚙   Settings",UDim2.fromOffset(149,43),
  UDim2.fromOffset(11,96),C.side)
+navSettings.BackgroundTransparency=.25
+navSettings.ZIndex=7
 navSpeed.TextXAlignment=Enum.TextXAlignment.Left
 navSettings.TextXAlignment=Enum.TextXAlignment.Left
 text(sidebar,"●  UI READY",UDim2.fromOffset(140,20),
@@ -143,10 +227,15 @@ text(sidebar,"●  UI READY",UDim2.fromOffset(140,20),
 
 local panel=frame(main,UDim2.fromOffset(402,267),
  UDim2.fromOffset(196,73),C.side,12)
+panel.BackgroundTransparency=.42
+panel.ZIndex=5
+border(panel,C.light,1,.77)
 local speedPage=frame(panel,UDim2.fromScale(1,1),UDim2.new(),C.side)
 speedPage.BackgroundTransparency=1
+speedPage.ZIndex=6
 local settingsPage=frame(panel,UDim2.fromScale(1,1),UDim2.new(),C.side)
 settingsPage.BackgroundTransparency=1
+settingsPage.ZIndex=6
 settingsPage.Visible=false
 
 text(speedPage,"Movement",UDim2.fromOffset(280,28),
@@ -156,6 +245,9 @@ text(speedPage,"Control your walking speed",UDim2.fromOffset(330,18),
 
 local card=frame(speedPage,UDim2.fromOffset(365,130),
  UDim2.fromOffset(18,73),C.card,12)
+card.BackgroundTransparency=.30
+card.ZIndex=7
+border(card,C.light,1,.80)
 border(card,C.line,1,.47)
 text(card,"WALK SPEED",UDim2.fromOffset(174,19),
  UDim2.fromOffset(15,13),11,C.muted,true,.1)
@@ -284,6 +376,7 @@ local footer=text(main,"NECTAR SPEED EDITION  •  V6.0",
 local status=text(main,"●  LOCAL CONTROL",UDim2.fromOffset(160,16),
  UDim2.fromOffset(438,345),10,C.light,true,.15)
 status.TextXAlignment=Enum.TextXAlignment.Right
+status.ZIndex=8
 
 local moving=false
 local mouseStart,windowStart
@@ -341,5 +434,6 @@ end)
 
 updateSpeed(75)
 drawState()
+print("[Nectar] Liquid glass artwork loading; "..artStatus)
 showPage("Speed")
 print("Nectar Speed Edition V6 loaded")
