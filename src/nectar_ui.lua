@@ -451,15 +451,45 @@ return function(cfg, engine, save, onClose)
         elseif page=="Debug" then
             sec("Live diagnostics")
             statusCard()
+            local reportBox=fr(content,UDim2.new(1,-3,0,143),
+                UDim2.new(),colors.surface,9)
+            lbl(reportBox,"BSS COMPATIBILITY REPORT",
+                UDim2.new(1,-24,0,21),UDim2.fromOffset(12,7),
+                11,colors.light,true)
+            local reportText=Instance.new("TextBox")
+            reportText.Size=UDim2.new(1,-25,1,-39)
+            reportText.Position=UDim2.fromOffset(12,31)
+            reportText.BackgroundTransparency=1
+            reportText.Text="Select Run BSS compatibility check"
+            reportText.TextColor3=colors.muted
+            reportText.TextSize=11
+            reportText.Font=Enum.Font.Code
+            reportText.TextXAlignment=Enum.TextXAlignment.Left
+            reportText.TextYAlignment=Enum.TextYAlignment.Top
+            reportText.TextWrapped=true
+            reportText.MultiLine=true
+            reportText.TextEditable=false
+            reportText.ClearTextOnFocus=false
+            reportText.Parent=reportBox
+            addEntry(reportBox,"diagnostics report")
             action("Run BSS compatibility check",function()
-                inform(engine.Diagnostics())
+                local result=engine.Diagnostics()
+                reportText.Text=result:gsub(" | ","\n")
+                inform("Diagnostics updated")
+            end)
+            action("Copy compatibility report",function()
+                if type(setclipboard)=="function" then
+                    setclipboard(reportText.Text)
+                    inform("Diagnostics copied")
+                else
+                    inform("Select report text manually; clipboard API unavailable",true)
+                end
             end)
             action("Force reset farm route",function()
                 engine.ResetRoute()
                 inform("Route reset")
             end)
-            note("Compatibility","This is a standalone script. Executor APIs and current BSS map layout may differ.")
-            note("Support","If pollen does not increase, send Debug output and a screenshot of your equipped collector.")
+            note("Support","If pollen does not increase, send the report and your collector name.")
         end
         applyFilter()
     end
