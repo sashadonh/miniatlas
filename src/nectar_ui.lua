@@ -192,11 +192,7 @@ return function(cfg, engine, save, onClose)
         end
         attach(switch.MouseButton1Click,function()
             cfg[key]=not cfg[key]
-            if key=="SpeedBoost" and not cfg[key] then
-                local c=player.Character
-                local h=c and c:FindFirstChildOfClass("Humanoid")
-                if h then h.WalkSpeed=16 end
-            end
+            if key=="SpeedBoost" then engine.ApplySpeed() end
             if key=="AutoFarm" then engine.ResetRoute() end
             save();update()
         end,true)
