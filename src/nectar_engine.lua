@@ -4,7 +4,8 @@ return function(cfg, signal)
     local Players = game:GetService("Players")
     local Workspace = game:GetService("Workspace")
     local RS = game:GetService("ReplicatedStorage")
-    local VIM = game:GetService("VirtualInputManager")
+    local VIM
+    pcall(function() VIM = game:GetService("VirtualInputManager") end)
     local PathService = game:GetService("PathfindingService")
     local player = Players.LocalPlayer
 
@@ -14,7 +15,8 @@ return function(cfg, signal)
     local listeners = {}
     local rng = Random.new()
     local lastMove, lastDig, lastSprinkler, lastNPC, lastToy = 0, 0, 0, 0, 0
-    local lastScan, lastRoute, lastStats = 0, 0, 0
+    local lastFieldMove = 0
+    local lastScan, lastPathCompute, lastStats = 0, 0, 0
     local walkTarget, route, routeIndex = nil, nil, 1
     local fieldStep, scanCache, seenStats = 0, {}, false
     local converting, convertStarted, convertPressed, pollenAtStart = false, 0, 0, 0
@@ -125,11 +127,11 @@ return function(cfg, signal)
         local changed = not walkTarget or (walkTarget-goal).Magnitude > 7
         if changed then
             walkTarget,route,routeIndex = goal,nil,1
-            lastRoute = 0
+            lastPathCompute = 0
         end
         if cfg.Movement == "Pathfinding" and d > 30 then
-            if not route and now()-lastRoute > 3 then
-                lastRoute = now()
+            if not route and now()-lastPathCompute > 3 then
+                lastPathCompute = now()
                 local ok,result = pcall(function()
                     local path = PathService:CreatePath({
                         AgentRadius = 2.0, AgentHeight = 5,
@@ -176,7 +178,7 @@ return function(cfg, signal)
         end
     end
     local function dig()
-        if now()-lastDig < cfg.DigDelay then return end
+        if now()-lastDig < (cfg.DigTenths * 0.1) then return end
         local r = root()
         if not r then return end
         lastDig = now()
@@ -203,6 +205,7 @@ return function(cfg, signal)
         end
         if preferred=="Auto" or preferred=="Mouse" then
             local ok=pcall(function()
+                assert(VIM, "VirtualInputManager unavailable")
                 VIM:SendMouseButtonEvent(0,0,0,true,game,0)
                 task.wait(0.05)
                 VIM:SendMouseButtonEvent(0,0,0,false,game,0)
@@ -360,6 +363,7 @@ return function(cfg, signal)
                         return true
                     end
                     local ok=pcall(function()
+                        assert(VIM, "VirtualInputManager unavailable")
                         VIM:SendKeyEvent(true,Enum.KeyCode.E,false,game)
                         task.wait(.1)
                         VIM:SendKeyEvent(false,Enum.KeyCode.E,false,game)
@@ -573,9 +577,9 @@ return function(cfg, signal)
             local center=fieldCenter()
             if not center then E.mode="Field has no BasePart";return end
             E.mode="Farming "..cfg.Field
-            if not currentObject or distance(currentObject)<5 or now()-lastRoute>cfg.MoveDelay then
+            if not currentObject or distance(currentObject)<5 or now()-lastFieldMove>cfg.MoveDelay then
                 currentObject=nextFlowerPoint()
-                lastRoute=now()
+                lastFieldMove=now()
             end
             if currentObject then walk(currentObject) end
         else
@@ -619,7 +623,8 @@ return function(cfg, signal)
         end
         converting=false
         currentObject=nil
-        speedApply()
+        local h=hum()
+        if h then h.WalkSpeed=speedBefore or 16 end
         local h,r=hum(),root()
         if h and r then h:MoveTo(r.Position) end
         E.mode="Stopped"
