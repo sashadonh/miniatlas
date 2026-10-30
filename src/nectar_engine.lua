@@ -610,7 +610,7 @@ return function(cfg, signal)
             task.wait(.08)
             guard(function()
                 if cfg.AutoFarm or cfg.AutoDig then
-                    if cfg.AutoDig or (cfg.AutoFarm and inField(root() and root().Position or nil,cfg.Radius+35)) then
+                    if cfg.AutoDig or (cfg.AutoFarm and (inField(root() and root().Position or nil,cfg.Radius+35) or string.find(E.mode,"Farming ",1,true)==1)) then
                         dig()
                     end
                 end
