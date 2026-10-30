@@ -1,6 +1,6 @@
--- Nectar Glass V8: new file path avoids cached V7
-local url="https://raw.githubusercontent.com/sashadonh/miniatlas/main/NectarGlassV8.lua"
-local code=game:HttpGet(url.."?v8="..tostring(os.clock()),true)
-local fn,err=loadstring(code)
-assert(fn,err)
-fn()
+-- Nectar Transparent Glass V9.0 | speed-only
+local url="https://raw.githubusercontent.com/sashadonh/miniatlas/main/NectarGlassV9.lua"
+local source=game:HttpGet(url.."?v="..tostring(os.clock()),true)
+local run,err=loadstring(source)
+assert(run,err)
+run()
