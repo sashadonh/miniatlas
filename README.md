@@ -1,38 +1,29 @@
-# Nectar V5 🐝
+# Nectar Speed Edition V6 💜
 
-Авторський модульний Lua-скрипт для Roblox Bee Swarm Simulator. Темний GUI з фіолетовими акцентами. **Жодних чужих завантажувачів чи Atlas-коду.**
+**Cyber Violet** — modern, original speed-only Roblox GUI. No autofarm modules are loaded by the default loader.
 
-## Запуск у Solara
+## Solara loader
 
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/sashadonh/miniatlas/main/loader.lua"))()
 ```
 
-## Структура
+## Features
 
-- `loader.lua` — короткий вхідний файл
-- `NectarV5.lua` — налаштування й запуск модулів
-- `src/nectar_engine.lua` — власна логіка автоматизації
-- `src/nectar_ui.lua` — власний сучасний GUI
-- `NectarV3.lua` — попередня версія для відкату
+- Cyber Violet dark GUI, neon highlights and translucent secondary labels
+- Speed slider 16–200 and presets 30 / 50 / 100
+- Speed on/off switch, settings page and reset-to-default action
+- Smooth TweenService animations, draggable window, minimize, close
+- RightShift to show/hide
+- Cleanup and speed restoration on close or re-execution
 
-## Реалізована логіка (потрібна перевірка в самій грі)
+## Files
 
-- **Farming:** вибір поля, Zigzag/Spiral/Circle/Random, MoveTo/Pathfinding, автоактивація колектора (ClickEvent/Tool/Mouse), спринклер за наявності доступного Tool
-- **Collection:** найближчі токени, пріоритет над маршрутом, спроба конвертації пилку біля власного вулика, контроль заповнення через CoreStats або ProgressLabel
-- **Combat:** наближення до доступних моделей мобів; шкода від бджіл за правилами гри
-- **Quests:** перехід до вибраного NPC й спроба взаємодії з ним, без автоматичного аналізу цілей
-- **Special targets:** пріоритет видимих sprouts, puffshrooms, bubbles, coconuts, precise, fires, leaves, clouds (експериментальні евристики за назвами об'єктів)
-- **Toys:** перехід до вибраної іграшки й спроба її локальної взаємодії через prompt/click detector
-- **Settings:** WalkSpeed 16–200, налаштування таймінгів, збереження за наявності `writefile`
-- **Debug:** діагностика доступності поля, інструмента, пилку, місткості та вулика
+- `NectarSpeedV6.lua` — **current version**, standalone Speed Edition
+- `loader.lua` — points only to Speed Edition V6
+- `NectarV5.lua`, `src/nectar_engine.lua`, `src/nectar_ui.lua` — **archived older code**, not loaded by default
+- `NectarV3.lua` — previous speed GUI
 
-## Поки НЕ реалізовано
+### Important
 
-Повноцінне читання/планування квестів, висадку й збір Planters через ігровий API, автоматичний RBC, усі босові тактики, memory match, webhook. Відповідних «фальшивих перемикачів» немає.
-
-## Сумісність
-
-Автофарм і конвертація — робочі алгоритми, але не перевірені наживо у поточному Bee Swarm Simulator / Solara. Деякі функції виконавця можуть бути недоступні. Якщо пилок не збирається: у **Farming** перемкни Dig Method (Auto / ClickEvent / Tool / Mouse), далі у **Debug** натисни «Run BSS compatibility check». Кнопка RightShift приховує/показує GUI.
-
-Скрипт не обходить античит і не гарантує відсутності блокувань.
+Client-side WalkSpeed changes are not guaranteed to persist. Bee Swarm Simulator can override movement, and no detection evasion / anti-cheat bypass or ban immunity is provided. Solara execution has not been tested in a live game.
