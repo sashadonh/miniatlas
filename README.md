@@ -27,3 +27,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/sashadonh/miniatlas/m
 ### Important
 
 Client-side WalkSpeed changes are not guaranteed to persist. Bee Swarm Simulator can override movement, and no detection evasion / anti-cheat bypass or ban immunity is provided. Solara execution has not been tested in a live game.
+
+## Liquid glass character background
+
+The Cyber Violet menu includes the user-selected blonde anime character. The uploaded image is held at `assets/nectar_character_base64.txt` as a compressed JPEG encoded in Base64. The client tries to download, decode, write and display it through `writefile` and `getcustomasset`/`getsynasset`. If the executor does not support local custom assets, the purple glass menu still works, but the illustration will not appear. For universal Roblox rendering, a published Roblox image asset ID would be required. The screenshot is not uploaded to Roblox by GitHub.
