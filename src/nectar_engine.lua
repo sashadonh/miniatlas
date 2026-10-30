@@ -37,6 +37,10 @@ return function(cfg, signal)
         local c = char()
         return c and c:FindFirstChildOfClass("Humanoid")
     end
+    do
+        local initialHumanoid=humanoid()
+        if initialHumanoid then speedBefore=initialHumanoid.WalkSpeed end
+    end
     local function part(obj)
         if not obj then return nil end
         if obj:IsA("BasePart") then return obj end
@@ -387,6 +391,7 @@ return function(cfg, signal)
         local p=part(obj)
         if not p then return nil end
         local name=string.lower(obj.Name)
+        if cfg.IgnoreHoney and name:find("honey",1,true) then return nil end
         if obj.Name==player.Name or name:find("token",1,true) or name:find("collect",1,true) or obj:FindFirstChild("Sparkles") then
             return p
         end
@@ -615,6 +620,11 @@ return function(cfg, signal)
             end)
         end
     end)
+    function E.ApplySpeed()
+        local h=hum()
+        if h then h.WalkSpeed=cfg.SpeedBoost and cfg.Speed or (speedBefore or 16) end
+    end
+    -- SpeedBoost public entrypoint
     function E.StopAll()
         for _,key in ipairs({"AutoFarm","AutoDig","AutoTokens","AutoConvert","AutoSprinkler","AutoMobs",
             "QuestAssist","AutoToys","FarmBubbles","FarmCoconuts","FarmPrecise","FarmFires",
