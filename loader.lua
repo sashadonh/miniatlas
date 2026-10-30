@@ -1,6 +1,7 @@
--- Nectar V4 stable loader
-local url="https://raw.githubusercontent.com/sashadonh/miniatlas/main/NectarV4.lua"
-local code=game:HttpGet(url,true)
-local runner,err=loadstring(code)
-assert(runner,err)
-runner()
+-- Nectar V5 loader
+-- Independent, original script maintained in this repository.
+local url="https://raw.githubusercontent.com/sashadonh/miniatlas/main/NectarV5.lua"
+local source=game:HttpGet(url,true)
+local run,compileError=loadstring(source)
+assert(run,compileError)
+run()
