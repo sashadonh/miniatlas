@@ -1,0 +1,16 @@
+name: Lua syntax validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua
+        run: sudo apt-get update -qq && sudo apt-get install -y lua5.4
+      - name: Parse Nectar scripts
+        run: luac -p loader.lua NectarV3.lua NectarV5.lua src/nectar_engine.lua src/nectar_ui.lua
