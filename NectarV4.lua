@@ -12,9 +12,15 @@ local old=pg:FindFirstChild("NectarV4")
 if old then old:Destroy() end
 local running=true
 local events={}
+local pageEvents={}
 local function watch(ev,fn)
  local c=ev:Connect(fn)
  table.insert(events,c)
+ return c
+end
+local function watchPage(ev,fn)
+ local c=watch(ev,fn)
+ table.insert(pageEvents,c)
  return c
 end
 local function rgb(a,b,c) return Color3.fromRGB(a,b,c) end
@@ -160,6 +166,8 @@ local function filter()
  end
 end
 local function clear()
+ for _,c in ipairs(pageEvents) do c:Disconnect() end
+ pageEvents={}
  for _,c in ipairs(scroll:GetChildren()) do
   if c:IsA("Frame") or c:IsA("TextButton") or c:IsA("TextLabel") then c:Destroy() end
  end
@@ -193,7 +201,7 @@ local function toggle(name,key,help)
   tween(b,{BackgroundColor3=on and col.purple or col.line})
   tween(nub,{Position=on and UDim2.fromOffset(26,3) or UDim2.fromOffset(3,3)})
  end
- watch(b.MouseButton1Click,function()
+ watchPage(b.MouseButton1Click,function()
   if key=="SpeedBoost" and not cfg.SpeedBoost then
    local h=hum()
    if h then initial=h.WalkSpeed end
@@ -211,7 +219,7 @@ local function choose(name,key,options)
  b.TextSize=12
  local function draw() b.Text=tostring(cfg[key]).."  ▾" end
  draw()
- watch(b.MouseButton1Click,function()
+ watchPage(b.MouseButton1Click,function()
   local i=table.find(options,cfg[key]) or 0
   cfg[key]=options[(i%#options)+1]
   draw();save()
@@ -245,13 +253,13 @@ local function slider(name,key,lo,hi)
    hold=true;locate(i.Position.X)
   end
  end
- watch(rail.InputBegan,press);watch(nub.InputBegan,press)
- watch(UIS.InputChanged,function(i)
+ watchPage(rail.InputBegan,press);watchPage(nub.InputBegan,press)
+ watchPage(UIS.InputChanged,function(i)
   if hold and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
    locate(i.Position.X)
   end
  end)
- watch(UIS.InputEnded,function(i)
+ watchPage(UIS.InputEnded,function(i)
   if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
    if hold then save() end
    hold=false
@@ -263,7 +271,7 @@ local function action(name,callback,help)
  local r=frame(scroll,UDim2.new(1,-4,0,help and 63 or 48),UDim2.new(),col.card,9)
  local b=button(r,name,UDim2.new(1,-22,0,32),UDim2.fromOffset(11,help and 7 or 8),col.hover)
  if help then label(r,help,UDim2.new(1,-26,0,17),UDim2.fromOffset(12,42),10,col.gray) end
- watch(b.MouseButton1Click,function()
+ watchPage(b.MouseButton1Click,function()
   local ok,err=pcall(callback)
   if not ok then report(tostring(err),true) end
  end)
