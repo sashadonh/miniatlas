@@ -1,7 +1,6 @@
--- Mini Atlas Full Clone Loader by sashadonh
-print("🔄 Загрузка Mini Atlas Full...")
-
-local repo = "https://raw.githubusercontent.com/sashadonh/miniatlas/main/"
-local nc = "?nocache=" .. os.time()
-
-loadstring(game:HttpGet(repo .. "src/main.lua" .. nc, true))()
+-- Nectar V3 loader
+local url = "https://raw.githubusercontent.com/sashadonh/miniatlas/main/NectarV3.lua"
+local source = game:HttpGet(url, true)
+local chunk, err = loadstring(source)
+assert(chunk, err)
+chunk()
