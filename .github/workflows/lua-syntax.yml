@@ -13,4 +13,4 @@ jobs:
       - name: Install Lua
         run: sudo apt-get update -qq && sudo apt-get install -y lua5.4
       - name: Parse Nectar scripts
-        run: luac -p NectarGlassV14.lua NectarGlassV13.lua NectarGlassV12.lua NectarGlassV11.lua NectarGlassV10.lua NectarGlassV9.lua loader.lua NectarGlassV8.lua NectarGlassV7.lua NectarSpeedV6.lua NectarV3.lua NectarV5.lua src/nectar_engine.lua src/nectar_ui.lua
+        run: luac -p NectarGlassV15.lua NectarGlassV14.lua NectarGlassV13.lua NectarGlassV12.lua NectarGlassV11.lua NectarGlassV10.lua NectarGlassV9.lua loader.lua NectarGlassV8.lua NectarGlassV7.lua NectarSpeedV6.lua NectarV3.lua NectarV5.lua src/nectar_engine.lua src/nectar_ui.lua
