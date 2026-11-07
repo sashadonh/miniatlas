@@ -600,7 +600,6 @@ local function locateTokens()
  local nearPart=nil
  local seen={}
  for _,obj in ipairs(folder:GetChildren()) do
-  if not obj or not obj.Parent then continue end
   local part=tokenPart(obj)
   if part then
    local dist=root and (part.Position-root.Position).Magnitude or 1e6
