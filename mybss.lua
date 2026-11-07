@@ -440,9 +440,9 @@ local toggles={
  tokens=true,esp=true,bag=true,buffs=true,pattern=false,field=true,honey=true,swing=false
 }
 local farmLabels={
- {"tokens","Token Helper"},{"esp","Token ESP"},{"bag","Backpack Alert"},
- {"buffs","Buff Timers"},{"pattern","Farm Pattern guide"},
- {"field","Field Helper"},{"honey","Honey Tracker"},{"swing","Auto Swing"}
+ {"swing","Auto Swing"},{"tokens","Priority Tokens"},{"esp","Token ESP"},
+ {"bag","Backpack Alert"},{"buffs","Buff Timers"},{"pattern","Farm Pattern guide"},
+ {"field","Field Helper"},{"honey","Honey Tracker"}
 }
 text(farmPage,"Farm Assistant",UDim2.fromOffset(300,29),
  UDim2.fromOffset(18,9),19,C.white,true)
@@ -452,7 +452,7 @@ local farmScroll=Instance.new("ScrollingFrame")
 farmScroll.Name="FarmOptions"
 farmScroll.Size=UDim2.fromOffset(372,192)
 farmScroll.Position=UDim2.fromOffset(15,66)
-farmScroll.CanvasSize=UDim2.fromOffset(0,370)
+farmScroll.CanvasSize=UDim2.fromOffset(0,472)
 farmScroll.ScrollBarThickness=3
 farmScroll.ScrollBarImageColor3=C.violet
 farmScroll.BackgroundTransparency=1
@@ -539,10 +539,39 @@ local started=os.clock()
 local startHoney=nil
 local bagWarned=false
 local tokenMarkers={}
-local tokenFilter="All" -- Default labels for every token, not only rare ones.
+local tokenFilter="Priority" -- Purple boxes only for blue-hive priority tokens.
 local trackedAt={}
 local tokenFolder=nil
-local tokenNames={"haste","focus","inspire","token link","baby love","melody","precision"}
+local tokenNames={
+ {"surprise party","Surprise Party"},{"inflate balloons","Balloon"},
+ {"inflate balloon","Balloon"},{"balloon","Balloon"},
+ {"festive gift","Festive Gift"},{"festive","Festive Gift"},
+ {"pop star","Pop Star"},{"star shower","Star Shower"},{"star","Star"},
+ {"honey gift","Honey Gift"},{"honey bag","Honey Gift"},
+ {"bag","Honey Gift"},{"gift","Honey Gift"},
+ {"token link","Token Link"},{"blue boost","Blue Boost"},
+ {"blue bomb","Blue Bomb"},{"bubble","Bubble"},
+ {"melody","Melody"},{"baby love","Baby Love"}
+}
+local HttpService=game:GetService("HttpService")
+local MarketplaceService=game:GetService("MarketplaceService")
+local namedTextures={}
+local pendingTextures={}
+local textureInfoRequests=0
+local localMapFile="nectar_priority_tokens.json"
+if type(readfile)=="function" and type(isfile)=="function" then
+ pcall(function()
+  if isfile(localMapFile) then
+   local data=HttpService:JSONDecode(readfile(localMapFile))
+   if type(data)=="table" then namedTextures=data end
+  end
+ end)
+end
+local function saveNamedTextures()
+ if type(writefile)=="function" then
+  pcall(function() writefile(localMapFile,HttpService:JSONEncode(namedTextures)) end)
+ end
+end
 local function tokenPart(obj)
  if not obj:IsA("BasePart") then return nil end
  if obj.Name=="C" or obj.Name=="Token" or obj.Name:lower():find("token") then return obj end
