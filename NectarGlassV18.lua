@@ -460,9 +460,7 @@ farmScroll.BorderSizePixel=0
 farmScroll.ZIndex=9
 farmScroll.Parent=farmPage
 
-local tokenDisplay=text(farmPage,"",UDim2.fromOffset(100,10),
- UDim2.fromOffset(0,0),10,C.muted)
-local farmSwitches={}
+ local farmSwitches={}
 for i,entry in ipairs(farmLabels) do
  local id,name=entry[1],entry[2]
  local y=(i-1)*42
@@ -599,6 +597,7 @@ local function locateTokens()
  if not folder then clearMarkers();return nil,nil end
  local nearDist=math.huge
  local nearKind=nil
+ local nearPart=nil
  local seen={}
  for _,obj in ipairs(folder:GetChildren()) do
   if not obj or not obj.Parent then continue end
@@ -608,9 +607,9 @@ local function locateTokens()
    if dist<=105 then
     local kind=tokenType(part)
     seen[part]=true
-    if toggles.tokens and kind~="Token" then markToken(part,kind) end
+    if toggles.tokens then markToken(part,kind) end
     if toggles.esp and dist<nearDist then
-     nearDist=dist;nearKind=kind
+     nearDist=dist;nearKind=kind;nearPart=part
     end
    end
   end
@@ -618,7 +617,20 @@ local function locateTokens()
  for obj,icon in pairs(tokenMarkers) do
   if not seen[obj] or not toggles.tokens then icon:Destroy();tokenMarkers[obj]=nil end
  end
- return nearKind,nearDist
+ return nearKind,nearDist,nearPart
+end
+local function directionTo(root,part)
+ if not root or not part then return "" end
+ local offset=part.Position-root.Position
+ local flat=Vector3.new(offset.X,0,offset.Z)
+ if flat.Magnitude<.05 then return "here" end
+ local forward=root.CFrame.LookVector
+ local right=root.CFrame.RightVector
+ local f=flat.Unit:Dot(Vector3.new(forward.X,0,forward.Z))
+ local r=flat.Unit:Dot(Vector3.new(right.X,0,right.Z))
+ if f>.7 then return "ahead" end
+ if f<-.7 then return "behind" end
+ return r>0 and "right" or "left"
 end
 local function formatNum(n)
  if not n then return "--" end
@@ -665,6 +677,8 @@ local function getQuestField()
 end
 local farmElapsed=0
 local farmClock=0
+local lastBuffs={}
+local lastQuest=nil
 on(RunService.Heartbeat,function(dt)
  if not alive then return end
  farmElapsed=farmElapsed+dt
@@ -677,9 +691,10 @@ on(RunService.Heartbeat,function(dt)
  if not enabledAny then clearMarkers();return end
  local lines={}
  local function add(t) if #lines<6 then table.insert(lines,t) end end
- local kind,dist=locateTokens()
+ local kind,dist,part=locateTokens()
  if toggles.esp then
-  add(kind and ("Token: "..kind.."  "..math.floor(dist).." studs")
+  local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+  add(kind and ("Token: "..kind.." "..math.floor(dist).." studs "..directionTo(root,part))
    or "Token: not detected")
  end
  local pollen,capacity,honey=stats()
@@ -704,11 +719,14 @@ on(RunService.Heartbeat,function(dt)
    add("Honey: +"..formatNum(gained).."  /h "..formatNum(gained/math.max((os.clock()-started)/3600,.01)))
   else add("Honey: data unavailable") end
  end
- if toggles.buffs then
-  local buffs=readBuffTimers()
-  add(#buffs>0 and ("Buff: "..table.concat(buffs," / ")) or "Buff timers: unavailable")
+ if farmClock%4==0 then
+  if toggles.buffs then lastBuffs=readBuffTimers() end
+  if toggles.field then lastQuest=getQuestField() end
  end
- if toggles.field then add("Quest field: "..(getQuestField() or "not detected")) end
+ if toggles.buffs then
+  add(#lastBuffs>0 and ("Buff: "..table.concat(lastBuffs," / ")) or "Buff timers: unavailable")
+ end
+ if toggles.field then add("Quest field: "..(lastQuest or "not detected")) end
  if toggles.pattern then
   add("Pattern "..routeFields[selectedField]..": "..routeSteps[routeStep])
   if farmClock%5==0 then routeStep=routeStep%#routeSteps+1 end
