@@ -572,84 +572,214 @@ local function saveNamedTextures()
   pcall(function() writefile(localMapFile,HttpService:JSONEncode(namedTextures)) end)
  end
 end
+-- Identify priorities from exposed names/attributes, saved decal IDs and optional
+-- Roblox asset names. BSS often names every token "C", so names alone are insufficient.
 local function tokenPart(obj)
  if not obj:IsA("BasePart") then return nil end
- if obj.Name=="C" or obj.Name=="Token" or obj.Name:lower():find("token") then return obj end
+ local n=obj.Name:lower()
+ if n=="c" or n=="token" or n:find("token",1,true) then return obj end
+ return nil
+end
+local function textureId(obj)
+ for _,v in ipairs(obj:GetChildren()) do
+  if v:IsA("Decal") or v:IsA("Texture") then
+   local id=tostring(v.Texture):match("%d+")
+   if id then return id end
+  end
+ end
+ return nil
+end
+local function priorityFromString(data)
+ local blob=tostring(data or ""):lower()
+ for _,entry in ipairs(tokenNames) do
+  if blob:find(entry[1],1,true) then return entry[2] end
+ end
  return nil
 end
 local function tokenType(obj)
  local vals={obj.Name}
- for _,key in ipairs({"TokenType","Ability","Type","TokenName"}) do
+ for _,key in ipairs({"TokenType","Ability","Type","TokenName","AbilityName","Name"}) do
   local v=obj:GetAttribute(key)
   if type(v)=="string" then table.insert(vals,v) end
  end
- for _,child in ipairs(obj:GetChildren()) do
-  if child:IsA("StringValue") then table.insert(vals,child.Value) end
+ for _,v in ipairs(obj:GetChildren()) do
+  table.insert(vals,v.Name)
+  if v:IsA("StringValue") then table.insert(vals,v.Value) end
  end
- local blob=table.concat(vals," "):lower()
- for _,name in ipairs(tokenNames) do
-  if blob:find(name,1,true) then return name end
+ local detected=priorityFromString(table.concat(vals," "))
+ if detected then return detected end
+ local id=textureId(obj)
+ if id then
+  local cached=namedTextures[id]
+  if cached then
+   local parsed=priorityFromString(cached)
+   return parsed or (cached~="Unknown" and cached or nil)
+  end
+  if not pendingTextures[id] and textureInfoRequests<32 then
+   pendingTextures[id]=true
+   textureInfoRequests=textureInfoRequests+1
+   task.spawn(function()
+    local ok,info=pcall(function()
+     return MarketplaceService:GetProductInfo(tonumber(id),Enum.InfoType.Asset)
+    end)
+    if not alive then return end
+    local name=ok and info and type(info.Name)=="string" and info.Name or "Unknown"
+    namedTextures[id]=priorityFromString(name) or "Unknown"
+    pendingTextures[id]=nil
+   end)
+  end
  end
- return "Token" -- A texture-only token has no reliable identification.
+ return nil
 end
 local function clearMarkers()
- for obj,guiMarker in pairs(tokenMarkers) do
-  pcall(function() guiMarker:Destroy() end)
+ for obj,item in pairs(tokenMarkers) do
+  pcall(function() item.gui:Destroy() end)
+  pcall(function() if item.outline then item.outline:Destroy() end end)
   tokenMarkers[obj]=nil
  end
 end
 local function markToken(obj,kind)
- if tokenMarkers[obj] then return end
+ local current=tokenMarkers[obj]
+ local title=kind or "TOKEN"
+ if current then
+  if current.kind==title then return end
+  pcall(function() current.gui:Destroy() end)
+  if current.outline then pcall(function() current.outline:Destroy() end) end
+ end
+ local highlight=Instance.new("Highlight")
+ highlight.Name="NectarPurpleToken"
+ highlight.Adornee=obj
+ highlight.FillTransparency=1
+ highlight.OutlineColor=C.violet
+ highlight.OutlineTransparency=.08
+ highlight.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
+ highlight.Parent=obj
  local icon=Instance.new("BillboardGui")
  icon.Name="NectarTokenAssist"
- icon.Size=UDim2.fromOffset(92,26)
- icon.StudsOffset=Vector3.new(0,3,0)
+ icon.Size=UDim2.fromOffset(118,31)
+ icon.StudsOffsetWorldSpace=Vector3.new(0,2.9,0)
  icon.AlwaysOnTop=true
- icon.MaxDistance=105
+ icon.MaxDistance=110
  icon.Adornee=obj
- icon.Parent=gui
+ icon.Parent=pg -- A BillboardGui must not be nested inside ScreenGui.
+ local bg=Instance.new("Frame")
+ bg.Size=UDim2.fromScale(1,1)
+ bg.BackgroundColor3=C.bg
+ bg.BackgroundTransparency=.32
+ bg.BorderSizePixel=0
+ bg.Parent=icon
+ radius(bg,7)
+ border(bg,C.violet,2,.04)
  local label=Instance.new("TextLabel")
  label.Size=UDim2.fromScale(1,1)
- label.BackgroundColor3=C.bg
- label.BackgroundTransparency=.28
- label.Text=kind=="Token" and "TOKEN" or kind:upper()
- label.TextColor3=kind=="Token" and C.muted or C.light
+ label.BackgroundTransparency=1
+ label.Text=title:upper()
+ label.TextColor3=kind and C.light or C.muted
  label.Font=Enum.Font.GothamBold
- label.TextSize=11
- label.Parent=icon
- radius(label,7)
- tokenMarkers[obj]=icon
+ label.TextScaled=true
+ label.TextWrapped=false
+ label.Parent=bg
+ tokenMarkers[obj]={gui=icon,outline=highlight,kind=title}
 end
 
--- Token nameplate filter: All keeps labels on every collectible.
-local tokenFilterButton=button(farmScroll,"Labels: ALL",UDim2.fromOffset(160,27),
- UDim2.fromOffset(2,337),C.raised)
+-- Filter buttons: purple framed priority tokens by default.
+local tokenFilterButton=button(farmScroll,"Priority ONLY",UDim2.fromOffset(164,28),
+ UDim2.fromOffset(2,340),C.violet)
 tokenFilterButton.ZIndex=13
 tokenFilterButton.TextSize=11
 on(tokenFilterButton.MouseButton1Click,function()
- tokenFilter=tokenFilter=="All" and "Valuable" or "All"
- tokenFilterButton.Text=tokenFilter=="All" and "Labels: ALL" or "Labels: VALUABLE"
+ tokenFilter=tokenFilter=="Priority" and "All" or "Priority"
+ tokenFilterButton.Text=tokenFilter=="Priority" and "Priority ONLY" or "Show ALL"
  clearMarkers()
 end)
+local teachKinds={"Balloon","Surprise Party","Festive Gift","Pop Star","Star Shower","Honey Gift"}
+local teachIndex=1
+local teachPick=button(farmScroll,"Tag: Balloon >",UDim2.fromOffset(173,29),
+ UDim2.fromOffset(2,378),C.raised)
+teachPick.TextSize=11
+teachPick.ZIndex=13
+on(teachPick.MouseButton1Click,function()
+ teachIndex=teachIndex%#teachKinds+1
+ teachPick.Text="Tag: "..teachKinds[teachIndex].." >"
+end)
+local teachSave=button(farmScroll,"Learn nearest token",UDim2.fromOffset(175,29),
+ UDim2.fromOffset(183,378),C.raised)
+teachSave.TextSize=10
+teachSave.ZIndex=13
+local teachStatus=text(farmScroll,
+ "Unknown token image? Tag it once near the token.",
+ UDim2.fromOffset(355,25),UDim2.fromOffset(3,418),10,C.muted,false)
+teachStatus.ZIndex=13
+on(teachSave.MouseButton1Click,function()
+ local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+ local folder=workspace:FindFirstChild("Collectibles")
+ if not root or not folder then
+  teachStatus.Text="No collectibles found"
+  return
+ end
+ local best,bestDist=nil,18
+ for _,obj in ipairs(folder:GetChildren()) do
+  local part=tokenPart(obj)
+  if part then
+   local id=textureId(part)
+   local dist=(root.Position-part.Position).Magnitude
+   if id and dist<bestDist then best=part;bestDist=dist end
+  end
+ end
+ if not best then teachStatus.Text="Stand within 18 studs of a token";return end
+ local id=textureId(best)
+ namedTextures[id]=teachKinds[teachIndex]
+ saveNamedTextures()
+ clearMarkers()
+ teachStatus.Text="Learned "..teachKinds[teachIndex].." ("..id..")"
+end)
 
--- Equipped tool activation only. No simulated input or remote calls.
--- Turning this off immediately stops automatic activations.
+-- Auto Swing supports actual tool objects and BSS collectors driven by mouse hold.
+local VirtualUser=game:GetService("VirtualUser")
+local swingHeld=false
+local swingMethod=nil
 local swingElapsed=0
+local function endSwing()
+ if not swingHeld then return end
+ if swingMethod=="executor" then
+  local fn=type(mouse1release)=="function" and mouse1release or env.mouse1release
+  if type(fn)=="function" then pcall(fn) end
+ elseif swingMethod=="virtualuser" then
+  pcall(function()
+   local cam=workspace.CurrentCamera
+   VirtualUser:Button1Up(Vector2.new(0,0),cam and cam.CFrame or CFrame.new())
+  end)
+ end
+ swingHeld=false
+ swingMethod=nil
+end
+local function beginSwing()
+ if swingHeld then return end
+ local fn=type(mouse1press)=="function" and mouse1press or env.mouse1press
+ if type(fn)=="function" and pcall(fn) then
+  swingHeld=true;swingMethod="executor";return
+ end
+ local ok=pcall(function()
+  local cam=workspace.CurrentCamera
+  VirtualUser:Button1Down(Vector2.new(0,0),cam and cam.CFrame or CFrame.new())
+ end)
+ if ok then swingHeld=true;swingMethod="virtualuser" end
+end
 on(RunService.Heartbeat,function(dt)
  if not alive or not toggles.swing then
+  endSwing()
   swingElapsed=0
   return
  end
+ local h=humanoid()
+ if not h or h.Health<=0 then endSwing();return end
+ beginSwing()
  swingElapsed=swingElapsed+dt
- if swingElapsed<.25 then return end
+ if swingElapsed<.32 then return end
  swingElapsed=0
  local char=player.Character
- local h=humanoid()
- if not char or not h or h.Health<=0 then return end
- local equipped=char:FindFirstChildOfClass("Tool")
- if equipped and equipped.Enabled then
-  pcall(function() equipped:Activate() end)
- end
+ local tool=char and char:FindFirstChildOfClass("Tool")
+ if tool and tool.Enabled then pcall(function() tool:Activate() end) end
 end)
 
 local function locateTokens()
@@ -665,20 +795,24 @@ local function locateTokens()
   local part=tokenPart(obj)
   if part then
    local dist=root and (part.Position-root.Position).Magnitude or 1e6
-   if dist<=105 then
+   if dist<=110 then
     local kind=tokenType(part)
     seen[part]=true
-    if toggles.tokens and (tokenFilter=="All" or kind~="Token") then
+    if toggles.tokens and (kind or tokenFilter=="All") then
      markToken(part,kind)
     end
-    if toggles.esp and dist<nearDist then
-     nearDist=dist;nearKind=kind;nearPart=part
+    if toggles.esp and (kind or tokenFilter=="All") and dist<nearDist then
+     nearDist=dist;nearKind=kind or "Token";nearPart=part
     end
    end
   end
  end
- for obj,icon in pairs(tokenMarkers) do
-  if not seen[obj] or not toggles.tokens then icon:Destroy();tokenMarkers[obj]=nil end
+ for obj,item in pairs(tokenMarkers) do
+  if not seen[obj] or not toggles.tokens or (not tokenType(obj) and tokenFilter~="All") then
+   item.gui:Destroy()
+   if item.outline then item.outline:Destroy() end
+   tokenMarkers[obj]=nil
+  end
  end
  return nearKind,nearDist,nearPart
 end
@@ -943,6 +1077,7 @@ end)
 
 local function cleanup()
  if not alive then return end
+ endSwing()
  alive=false
  enabled=false
  apply()
